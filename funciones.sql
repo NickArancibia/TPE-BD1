@@ -40,3 +40,51 @@ BEGIN
 	END LOOP;
 END;
 $$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION analisis_pie(
+    fecha_inicio futbolista.fichado%type,
+    tipo_pie futbolista.pie%type
+) RETURNS TABLE (
+    variable TEXT,
+    fecha TEXT,
+    qty INT,
+    prom_edad DECIMAL(5,2),
+    prom_alt DECIMAL(3,2),
+    valor INT,
+	num_fila INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        'Pie: ' || tipo_pie::TEXT AS variable,
+        TO_CHAR(DATE_TRUNC('month', fichado), 'YYYY-MM') AS fecha,
+        COUNT(*)::INT AS qty,
+        AVG(edad)::DECIMAL(5, 2) AS prom_edad,
+        AVG(altura)::DECIMAL(3, 2) AS prom_alt,
+        MAX(valor_mercado)::INT AS valor,
+	 	ROW_NUMBER() OVER (ORDER BY DATE_TRUNC('month', fichado))::INT AS num_fila
+    FROM futbolista
+    WHERE pie = tipo_pie AND fichado >= fecha_inicio
+    GROUP BY DATE_TRUNC('month', fichado)
+    ORDER BY DATE_TRUNC('month', fichado);
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION analisis_pies(
+    fecha_inicio futbolista.fichado%type
+) RETURNS TABLE (
+    variable TEXT,
+    fecha TEXT,
+    qty INT,
+    prom_edad DECIMAL(5,2),
+    prom_alt DECIMAL(3,2),
+    valor INT,
+	num_fila INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM analisis_pie(fecha_inicio, 'derecho')
+    UNION ALL
+    SELECT * FROM analisis_pie(fecha_inicio, 'izquierdo');
+END;
+$$ LANGUAGE PLPGSQL;
