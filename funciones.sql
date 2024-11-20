@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION analisis_pie(
     variable TEXT,
     fecha TEXT,
     qty INT,
-    prom_edad DECIMAL(5,1),
+    prom_edad DECIMAL(5,2),
     prom_alt DECIMAL(3,2),
     valor INT,
 	num_fila INT
@@ -76,7 +76,7 @@ CREATE OR REPLACE FUNCTION analisis_pies(
     variable TEXT,
     fecha TEXT,
     qty INT,
-    prom_edad DECIMAL(5,1),
+    prom_edad DECIMAL(5,2),
     prom_alt DECIMAL(3,2),
     valor INT,
 	num_fila INT
