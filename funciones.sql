@@ -88,3 +88,39 @@ BEGIN
     SELECT * FROM analisis_pie(fecha_inicio, 'izquierdo');
 END;
 $$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION analisis_dorsales(
+    fecha_inicio futbolista.fichado%type
+) RETURNS TABLE (
+    variable INT,
+    fecha TEXT,
+    qty INT,
+    prom_edad DECIMAL(5,2),
+    prom_altura DECIMAL(3,2),
+    valor INT,
+    num_fila INT
+) AS $$
+DECLARE
+	MINDORSAL CONSTANT INT := 1;
+	MAXDORSAL CONSTANT INT := 12;
+BEGIN
+    RETURN QUERY
+    SELECT
+        d.dorsal AS variable, 
+        MIN(f.fichado)::TEXT AS fecha,
+        COUNT(*)::INT AS qty,
+        AVG(edad)::DECIMAL(5, 2) AS prom_edad,
+        AVG(altura)::DECIMAL(3, 2) AS prom_altura,
+        MAX(f.valor_mercado)::INT AS valor,
+        ROW_NUMBER() OVER (ORDER BY MAX(f.valor_mercado) DESC)::INT AS num_fila
+    FROM 
+        dorsal d JOIN futbolista f ON d.nombre = f.nombre
+    WHERE 
+        d.dorsal BETWEEN MINDORSAL AND MAXDORSAL
+        AND f.fichado >= fecha_inicio
+    GROUP BY 
+        d.dorsal
+    ORDER BY 
+        MAX(f.valor_mercado) DESC;
+END;
+$$ LANGUAGE plpgsql;
