@@ -123,4 +123,5 @@ BEGIN
     ORDER BY 
         MAX(f.valor_mercado) DESC;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+RETURNS NULL ON NULL INPUT;
