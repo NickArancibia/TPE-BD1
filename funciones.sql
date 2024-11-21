@@ -19,7 +19,7 @@ BEGIN
         WHEN apos = 'Extremo derecho' OR apos = 'Extremo izquierdo' THEN posibles_dorsales := ARRAY[7, 11];
         WHEN apos = 'Delantero' OR apos = 'Delantero centro' THEN posibles_dorsales := ARRAY[9];
         ELSE 
-            posibles_dorsales := ARRAY[13];
+            posibles_dorsales := ARRAY[];
     END CASE;
 
 	SELECT ARRAY_AGG(dorsal)
@@ -27,14 +27,18 @@ BEGIN
     FROM futbolista f NATURAL JOIN dorsal
     WHERE f.equipo = aequipo;
 
+	IF dorsales_usados IS NULL THEN
+		dorsales_usados := ARRAY[];
+	END IF;
+
 	FOREACH posible_dorsal IN ARRAY posibles_dorsales LOOP
-		IF dorsales_usados IS NULL OR NOT posible_dorsal = ANY(dorsales_usados) THEN
+		IF NOT posible_dorsal = ANY(dorsales_usados) THEN
             RETURN posible_dorsal;
         END IF;
 	END LOOP;
 
 	FOR posible_dorsal IN 13..99 LOOP
-		IF posible_dorsal = ANY(dorsales_usados) THEN
+		IF NOT posible_dorsal = ANY(dorsales_usados) THEN
             RETURN posible_dorsal;
         END IF;
 	END LOOP;
