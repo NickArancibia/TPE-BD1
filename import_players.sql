@@ -22,4 +22,4 @@ create table dorsal(
 
 \set path_to_csv 'C:/Users/Dell/jugadores-2022.csv'  /* opcionalmente se puede usar una variable para el path */
 
-\COPY futbolista(nombre, posicion, edad, altura, pie, fichado, equipo_anterior, valor_mercado, equipo) FROM :path_to_csv WITH (FORMAT csv, DELIMITER ';', NULL '', HEADER true);
+\COPY futbolista(nombre, posicion, edad, altura, pie, fichado, equipo_anterior, valor_mercado, equipo) FROM :path_to_csv WITH (FORMAT csv, DELIMITER ';', NULL '', HEADER true, ENCODING 'UTF8');
