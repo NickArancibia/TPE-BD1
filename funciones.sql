@@ -28,7 +28,7 @@ BEGIN
     WHERE f.equipo = aequipo;
 
 	IF dorsales_usados IS NULL THEN
-		dorsales_usados := ARRAY[];
+		dorsales_usados := INT[];
 	END IF;
 
 	FOREACH posible_dorsal IN ARRAY posibles_dorsales LOOP
