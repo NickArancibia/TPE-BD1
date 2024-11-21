@@ -19,16 +19,16 @@ BEGIN
         WHEN apos = 'Extremo derecho' OR apos = 'Extremo izquierdo' THEN posibles_dorsales := ARRAY[7, 11];
         WHEN apos = 'Delantero' OR apos = 'Delantero centro' THEN posibles_dorsales := ARRAY[9];
         ELSE 
-            posibles_dorsales := ARRAY[];
+            posibles_dorsales := ARRAY[]::INTEGER[];
     END CASE;
 
 	SELECT ARRAY_AGG(dorsal)
     INTO dorsales_usados
-    FROM futbolista f NATURAL JOIN dorsal
+    FROM futbolista f JOIN dorsal d ON f.nombre = d.jugador
     WHERE f.equipo = aequipo;
 
 	IF dorsales_usados IS NULL THEN
-		dorsales_usados := INT[];
+		dorsales_usados := ARRAY[]::INTEGER[];
 	END IF;
 
 	FOREACH posible_dorsal IN ARRAY posibles_dorsales LOOP
@@ -42,6 +42,7 @@ BEGIN
             RETURN posible_dorsal;
         END IF;
 	END LOOP;
+	RAISE EXCEPTION 'No hay dorsales disponibles';
 END;
 $$ LANGUAGE PLPGSQL;
 
