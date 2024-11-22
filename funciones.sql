@@ -69,7 +69,8 @@ BEGIN
         MAX(valor_mercado)::INT AS valor,
 	 	ROW_NUMBER() OVER (ORDER BY DATE_TRUNC('month', fichado))::INT AS num_fila
     FROM futbolista
-    WHERE pie = tipo_pie AND fichado >= fecha_inicio
+    WHERE pie = tipo_pie AND fichado >= fecha_inicio AND valor_mercado is not NULL 
+	AND altura IS NOT NULL AND pie IS NOT NULL
     GROUP BY DATE_TRUNC('month', fichado)
     ORDER BY DATE_TRUNC('month', fichado);
 END;
@@ -124,6 +125,8 @@ BEGIN
     WHERE 
         d.dorsal BETWEEN MINDORSAL AND MAXDORSAL
         AND f.fichado >= fecha_inicio
+		AND valor_mercado IS NOT NULL
+		AND altura IS NOT NULL
     GROUP BY 
         d.dorsal
     ORDER BY 
