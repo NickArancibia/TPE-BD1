@@ -170,7 +170,7 @@ END;
 $$ LANGUAGE plpgsql
 RETURNS NULL ON NULL INPUT;
 
-create or replace function analisis_datos(
+create or replace function analisis_jugadores(
 	fecha_inicio futbolista.fichado%type
 ) RETURNS VOID AS $$
 	DECLARE
