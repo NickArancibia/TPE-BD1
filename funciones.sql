@@ -316,11 +316,3 @@ EXECUTE PROCEDURE checkDependencyTrigger();
 CREATE OR REPLACE TRIGGER dorsalUpdateTrigger
 AFTER UPDATE ON dorsal
 EXECUTE PROCEDURE checkDependencyTrigger();
-
--- 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 
-
--- IMPORT DATA
-
-set path_to_csv 'path/to/jugadores-2022.csv'
-
-COPY futbolista(nombre, posicion, edad, altura, pie, fichado, equipo_anterior, valor_mercado, equipo) FROM :path_to_csv WITH (FORMAT csv, DELIMITER ';', NULL '', HEADER true, ENCODING 'UTF8');
