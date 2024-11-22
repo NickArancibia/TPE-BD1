@@ -120,7 +120,7 @@ BEGIN
         MAX(f.valor_mercado)::INT AS valor,
         ROW_NUMBER() OVER (ORDER BY MAX(f.valor_mercado) DESC)::INT AS num_fila
     FROM 
-        dorsal d JOIN futbolista f ON d.nombre = f.nombre
+        dorsal d JOIN futbolista f ON d.jugador = f.nombre
     WHERE 
         d.dorsal BETWEEN MINDORSAL AND MAXDORSAL
         AND f.fichado >= fecha_inicio
@@ -137,7 +137,7 @@ create or replace function analisis_datos(
 ) RETURNS VOID AS $$
 	DECLARE
 		cantDatos INT := (SELECT COUNT(*) 
-							FROM futbolista f JOIN dorsal d ON f.nombre = d.nombre
+							FROM futbolista f JOIN dorsal d ON f.nombre = d.jugador
 							WHERE f.fichado >= fecha_inicio
 						 );
 		CPies CURSOR FOR SELECT * FROM analisis_pies(fecha_inicio);
