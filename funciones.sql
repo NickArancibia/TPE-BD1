@@ -96,6 +96,41 @@ END;
 $$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
+CREATE OR REPLACE FUNCTION analisis_equipos(
+    fecha_inicio futbolista.fichado%type
+) RETURNS TABLE (
+    variable TEXT,
+    fecha TEXT,
+    qty INT,
+    prom_edad DECIMAL(5,2),
+    prom_alt DECIMAL(3,2),
+    valor INT,
+    num_fila INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        f.equipo::TEXT AS variable, 
+        MIN(f.fichado)::TEXT AS fecha,
+        COUNT(*)::INT AS qty,
+        AVG(edad)::DECIMAL(5, 2) AS prom_edad,
+        AVG(altura)::DECIMAL(3, 2) AS prom_alt,
+        MAX(f.valor_mercado)::INT AS valor,
+        ROW_NUMBER() OVER (ORDER BY MAX(f.valor_mercado) DESC)::INT AS num_fila
+    FROM 
+        dorsal d JOIN futbolista f ON d.jugador = f.nombre
+    WHERE 
+        f.fichado >= fecha_inicio
+		AND valor_mercado IS NOT NULL
+		AND altura IS NOT NULL
+    GROUP BY 
+        f.equipo
+    ORDER BY 
+        MAX(f.valor_mercado) DESC;
+END;
+$$ LANGUAGE plpgsql
+RETURNS NULL ON NULL INPUT;
+
 CREATE OR REPLACE FUNCTION analisis_dorsales(
     fecha_inicio futbolista.fichado%type
 ) RETURNS TABLE (
@@ -144,14 +179,17 @@ create or replace function analisis_datos(
 							WHERE f.fichado >= fecha_inicio
 						 );
 		CPies CURSOR FOR SELECT * FROM analisis_pies(fecha_inicio);
+		CEquipos CURSOR FOR SELECT * FROM analisis_equipos(fecha_inicio);
 		CDorsales CURSOR FOR SELECT * FROM analisis_dorsales(fecha_inicio);
 		pie_record RECORD;
+		equipo_record RECORD;
 		dorsal_record RECORD;
 	BEGIN
 		IF cantDatos = 0 THEN
 			RETURN;
 		END IF;
 		OPEN CPies;
+		OPEN CEquipos;
 		OPEN CDorsales;
 		RAISE INFO '-----------------------------------------------------------------------------------------------';
 		RAISE INFO '--------------------------------ANALISIS DE JUGADORES Y EQUIPOS--------------------------------';
@@ -172,7 +210,18 @@ create or replace function analisis_datos(
 				pie_record.num_fila;
 		END LOOP;
 		RAISE INFO '-----------------------------------------------------------------------------------------------';
-		-- EQUIPOS
+		LOOP
+			FETCH CEquipos INTO equipo_record;
+			EXIT WHEN NOT FOUND;
+			RAISE INFO '%	    %      %    %       %    %      %',
+				equipo_record.variable || repeat('.', 30 - LENGTH(equipo_record.variable)),
+				equipo_record.fecha,
+				equipo_record.qty,
+				equipo_record.prom_edad,
+				equipo_record.prom_alt,
+				equipo_record.valor::TEXT || repeat(' ', 11 - LENGTH(equipo_record.valor::TEXT)),
+				equipo_record.num_fila;
+		END LOOP;
 		RAISE INFO '-----------------------------------------------------------------------------------------------';
 		LOOP
 			FETCH CDorsales INTO dorsal_record;
@@ -188,6 +237,7 @@ create or replace function analisis_datos(
 		END LOOP;
 		RAISE INFO '-----------------------------------------------------------------------------------------------';
 		CLOSE CDorsales;
+		CLOSE CEquipos;
 		CLOSE CPies;
 	END
 $$ LANGUAGE PLPGSQL;
