@@ -119,6 +119,8 @@ Por otro lado, dado que en el archivo \texttt{.csv} los datos están separados p
 
 Asimismo, para asegurar que los espacios en blanco en los archivos CSV se interpreten como valores \texttt{NULL} en la base de datos, se utilizó la opción \texttt{NULL ''}. Esto permite que cualquier celda vacía o que contenga solo un espacio en blanco sea tratada como un valor \texttt{NULL} en la tabla.
 
+Consecuentemente, para la importación de los datos requeridos para el trabajo se requiere abrir una terminal \texttt{psql} y ejecutar el comando especificado a continuación en la cláusula \texttt{FROM} el path correspondiente al archivo.
+
 \begin{lstlisting}[
     language=SQL,
     caption={Comando de importación de datos},
