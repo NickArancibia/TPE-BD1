@@ -1,3 +1,29 @@
+-- TABLE CREATION
+
+create table futbolista(
+        nombre varchar(50) not null,
+        posicion varchar(50) not null,
+        edad int not null,
+        altura float,
+        pie varchar(20),
+        fichado date,
+        equipo_anterior varchar(50),
+        valor_mercado int,
+        equipo varchar(50),
+        primary key(nombre)
+);
+
+create table dorsal(
+        jugador varchar(50) not null,
+        dorsal int not null,
+        foreign key(jugador) references futbolista(nombre),
+        primary key(jugador)
+);
+
+-- 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 
+
+-- FUNCTIONS
+
 CREATE OR REPLACE FUNCTION nextDorsal(
 	apos futbolista.posicion%type,
 	aequipo futbolista.equipo%type
@@ -241,3 +267,52 @@ create or replace function analisis_jugadores(
 		CLOSE CPies;
 	END
 $$ LANGUAGE PLPGSQL;
+
+-- 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 === 0 
+
+-- TRIGGERS
+
+CREATE OR REPLACE FUNCTION checkDependency() RETURNS VOID AS $$
+DECLARE uniqueCounter INT;
+BEGIN
+        SELECT coalesce(max(num), 0) into uniqueCounter
+        FROM    (SELECT count(*) num
+                FROM futbolista join dorsal on futbolista.nombre = dorsal.jugador
+                GROUP BY futbolista.equipo, dorsal.dorsal) as nums;
+        IF uniqueCounter >= 2 THEN
+                RAISE EXCEPTION 'La operación viola la dependencia equipo, dorsal -> jugador';
+        END IF;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION insertDorsalForFutbolista() RETURNS Trigger AS $$
+BEGIN
+        RAISE NOTICE 'Nuevo nombre: %', new.nombre;
+        INSERT INTO dorsal values(new.nombre, nextDorsal(new.posicion, new.equipo));
+        PERFORM checkDependency();
+        RETURN new;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION checkDependencyTrigger() RETURNS Trigger AS $$
+BEGIN
+        PERFORM checkDependency();
+        RETURN new;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE TRIGGER futbolistaInsertTrigger
+AFTER INSERT ON futbolista
+FOR EACH ROW EXECUTE PROCEDURE insertDorsalForFutbolista();
+
+CREATE OR REPLACE TRIGGER futbolistaUpdateTrigger
+AFTER UPDATE ON futbolista
+EXECUTE PROCEDURE checkDependencyTrigger();
+
+CREATE OR REPLACE TRIGGER dorsalInsertTrigger
+AFTER INSERT ON dorsal
+EXECUTE PROCEDURE checkDependencyTrigger();
+
+CREATE OR REPLACE TRIGGER dorsalUpdateTrigger
+AFTER UPDATE ON dorsal
+EXECUTE PROCEDURE checkDependencyTrigger();
